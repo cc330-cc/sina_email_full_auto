@@ -1,0 +1,8 @@
+
+selenium==4.15.2
+playwright==1.40.0
+pytest==7.4.3
+allure-pytest==2.13.2
+Appium-Python-Client==3.0.0
+pytest-xdist==3.5.0
+webdriver-manager==4.0.1

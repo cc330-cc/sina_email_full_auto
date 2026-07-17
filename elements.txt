@@ -1,0 +1,19 @@
+PS F:\sina_email_full_auto> & F:/Python/python.exe f:/sina_email_full_auto/touch.py
+Exception managing chrome: error sending request for url (https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json)
+页面标题: 新浪邮箱
+发现 2 个 iframe
+iframe 0: src='https://sbeacon.sina.com.cn/ckctl.html'
+iframe 1: src='https://mail.sina.com.cn/'
+
+所有 input 元素:
+  name='', id='freename', placeholder=''
+  name='', id='freepassword', placeholder=''
+  name='', id='store1', placeholder=''
+  name='', id='ssl1', placeholder=''
+  name='checkcode', id='freecheckcode', placeholder=''
+  name='username', id='vipname', placeholder=''
+  name='password', id='vippassword', placeholder=''
+  name='vsn', id='vipvsn', placeholder=''
+  name='', id='store2', placeholder=''
+  name='', id='ssl2', placeholder=''
+  name='checkcode', id='vipcheckcode', placeholder=''

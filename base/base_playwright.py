@@ -1,70 +1,81 @@
-import pytest
-import allure
+from playwright.sync_api import Page, expect
+import logging
+import os
+import time
 
-@allure.feature("新浪邮箱-Playwright 轻量化测试")
-class TestPlaywright:
+logger = logging.getLogger(__name__)
 
-    @allure.story("登录并发送邮件（同步 API）")
-    def test_sina_playwright_login(self, page):  # pytest-playwright 提供
-        # 1. 打开页面
-        page.goto("https://mail.sina.com.cn/")
-        page.screenshot(path="screenshot/pw_01_page_loaded.png")
+class BasePlaywrightPage:
+    """Playwright 通用基类（同步 API）"""
+    def __init__(self, page: Page):
+        self.page = page
+        self.timeout = 10000  # 毫秒
 
-        # 2. CSS 定位：输入账号密码
-        page.locator("input[name='freename']").fill("cc2535404199@sina.com")
-        page.locator("input[name='freepassword']").fill("Cc046353")
-        page.screenshot(path="screenshot/pw_02_credentials_filled.png")
+    # ---------- 多种定位方式 ----------
+    def click(self, selector=None, text=None, role=None, placeholder=None, label=None):
+        """支持 CSS/XPath/Text/Role/Placeholder/Label 定位"""
+        if selector:
+            loc = self.page.locator(selector)
+        elif text:
+            loc = self.page.get_by_text(text)
+        elif role:
+            loc = self.page.get_by_role(role)
+        elif placeholder:
+            loc = self.page.get_by_placeholder(placeholder)
+        elif label:
+            loc = self.page.get_by_label(label)
+        else:
+            raise ValueError("至少提供一种定位方式")
+        loc.click()
+        logger.info(f"点击元素: {selector or text or role or placeholder or label}")
 
-        # 3. XPath 定位登录按钮（备用，如用 CSS 亦可）
-        # page.locator("//a[contains(@class,'loginBtn')]").click()
-        # 这里用 CSS 直接演示
-        page.locator("a.loginBtn").click()
-        page.screenshot(path="screenshot/pw_03_after_click_login.png")
+    def fill(self, value, selector=None, placeholder=None, label=None):
+        if selector:
+            loc = self.page.locator(selector)
+        elif placeholder:
+            loc = self.page.get_by_placeholder(placeholder)
+        elif label:
+            loc = self.page.get_by_label(label)
+        else:
+            raise ValueError("请提供 selector/placeholder/label")
+        loc.fill(value)
+        logger.info(f"填入: {value}")
 
-        # 4. 处理验证码（如果有）
-        try:
-            page.wait_for_selector("#freecheckcode", timeout=3000)
-            print("检测到图形验证码，请查看浏览器输入验证码")
-            captcha = input("请输入验证码后按回车: ")
-            page.locator("#freecheckcode").fill(captcha)
-            page.locator("a.loginBtn").click()
-            page.screenshot(path="screenshot/pw_04_captcha_submitted.png")
-        except:
-            pass
+    def get_text(self, selector=None, text=None):
+        if selector:
+            return self.page.locator(selector).text_content()
+        elif text:
+            return self.page.get_by_text(text).text_content()
+        raise ValueError("请提供 selector 或 text")
 
-        # 5. 处理安全验证弹窗（Text 定位）
-        try:
-            page.wait_for_selector("text=安全验证", timeout=3000)
-            print("检测到安全验证弹窗，请手动完成")
-            input("完成后按回车继续...")
-            page.screenshot(path="screenshot/pw_05_security_verified.png")
-        except:
-            pass
+    # ---------- 断言封装 ----------
+    def assert_visible(self, selector=None, text=None, role=None):
+        if selector:
+            expect(self.page.locator(selector)).to_be_visible()
+        elif text:
+            expect(self.page.get_by_text(text)).to_be_visible()
+        elif role:
+            expect(self.page.get_by_role(role)).to_be_visible()
+        logger.info(f"断言可见: {selector or text or role}")
 
-        # 6. 等待登录成功，断言用户名可见（CSS 定位 + 断言）
-        page.wait_for_selector(".userName", timeout=10000)
-        assert page.locator(".userName").is_visible()
-        page.screenshot(path="screenshot/pw_06_login_success.png")
+    def assert_contains_text(self, selector, expected_text):
+        expect(self.page.locator(selector)).to_contain_text(expected_text)
 
-        # 7. 点击写信（CSS 定位）
-        page.locator("span[title='写信']").click()
-        page.screenshot(path="screenshot/pw_07_compose_opened.png")
+    # ---------- 截图 ----------
+    def take_screenshot(self, name="playwright_screenshot"):
+        os.makedirs("screenshot", exist_ok=True)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        path = os.path.join("screenshot", f"{name}_{timestamp}.png")
+        self.page.screenshot(path=path)
+        logger.info(f"截图保存至: {path}")
+        return path
 
-        # 8. 写信：使用 Name 和 ID 定位
-        page.locator("input[name='to']").fill("receiver@sina.com")
-        page.locator("#subject").fill("Playwright Test Email")
-        # 正文在 iframe 内，使用 frame_locator
-        frame = page.frame_locator("iframe")
-        frame.locator("body").fill("This email is sent by Playwright.")
-        page.screenshot(path="screenshot/pw_08_compose_filled.png")
+    # ---------- 窗口/标签页 ----------
+    def switch_to_new_tab(self):
+        new_page = self.page.context.new_page()
+        self.page = new_page
+        return new_page
 
-        # 9. 发送（CSS 定位）
-        page.locator("a[role='button'][title='发送']").click()
-        page.screenshot(path="screenshot/pw_09_after_send_click.png")
-
-        # 10. 断言发送成功（Text 定位）
-        page.wait_for_selector("text=发送成功", timeout=10000)
-        assert page.locator("text=发送成功").is_visible()
-        page.screenshot(path="screenshot/pw_10_send_success.png")
-
-        print("Playwright 测试完成，所有截图已保存。")
+    # ---------- 等待 ----------
+    def wait_for_selector(self, selector, timeout=10000):
+        self.page.wait_for_selector(selector, timeout=timeout)

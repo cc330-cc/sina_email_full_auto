@@ -12,8 +12,8 @@ class TestPlaywright:
         page.screenshot(path="screenshot/pw_01_page_loaded.png")
 
         # 2. 通过 ID 定位输入框（主文档）
-        page.locator("#freename").fill("cc2535404199@sina.com")
-        page.locator("#freepassword").fill("Cc046353")
+        page.locator("#freename").fill("你的邮箱")
+        page.locator("#freepassword").fill("你的密码")
         page.screenshot(path="screenshot/pw_02_credentials_filled.png")
 
         # 3. 点击免费邮箱登录按钮（限定在 freeMailbox 区域内，避免与 VIP 冲突）

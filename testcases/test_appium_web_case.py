@@ -29,6 +29,6 @@ class TestAppiumWeb:
         )
         driver.get("https://mail.sina.com.cn/")
         login_page = LoginPageSelenium(driver)
-        main_page = login_page.login("cc2535404199@sina.com", "Cc046353")
+        main_page = login_page.login("你的邮箱", "你的密码")
         assert "cc2535404199@sina.com" in main_page.get_username()
         driver.quit()

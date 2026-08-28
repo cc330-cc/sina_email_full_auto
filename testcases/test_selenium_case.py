@@ -17,6 +17,6 @@ class TestSinaMailSelenium:
 
         driver.get("https://mail.sina.com.cn/")
         login_page = LoginPageSelenium(driver)
-        login_page.login("cc2535404199@sina.com", "Cc046353")
+        login_page.login("你的邮箱", "你的密码")
 
         driver.quit()

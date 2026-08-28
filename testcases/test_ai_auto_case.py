@@ -14,12 +14,12 @@ class TestAIDemo:
         # 2. 语义定位：限定在免费邮箱区域内
         with allure.step("AI 识别并填写用户名"):
             username_input = page.locator("div.freeMailbox #freename")
-            username_input.fill("cc2535404199@sina.com")
+            username_input.fill("你的邮箱")
             page.screenshot(path="screenshot/ai_02_username_filled.png")
 
         with allure.step("AI 识别并填写密码"):
             password_input = page.locator("div.freeMailbox #freepassword")
-            password_input.fill("Cc046353")
+            password_input.fill("你的密码")
             page.screenshot(path="screenshot/ai_03_password_filled.png")
 
         with allure.step("AI 识别并点击登录按钮"):
